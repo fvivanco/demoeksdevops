@@ -1,0 +1,43 @@
+# Annotations Reference:  https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: eks-devops-ingress-service
+  labels:
+    app: eks-devops
+  annotations:
+    # Ingress Core Settings  
+    #kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # Health Check Settings
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: '15'
+    alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
+    alb.ingress.kubernetes.io/success-codes: '200'
+    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
+    alb.ingress.kubernetes.io/unhealthy-threshold-count: '2'
+    ## SSL Settings
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:553704904773:certificate/1f7e3429-3372-4e00-9b3a-1338bf138053
+    #alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy-TLS-1-1-2017-01 #Optional (Picks default if not used)    
+    # SSL Redirect Setting
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    #alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'   
+    # External DNS - For creating a Record Set in Route53
+    external-dns.alpha.kubernetes.io/hostname: eksdemo03.itwebsitex.com
+
+spec:
+  ingressClassName: my-aws-ingress-class   # Ingress Class                       
+  rules:
+    - http:
+        paths:      
+          - path: /app1/index.html 
+            pathType: Prefix
+            backend:
+              service:
+                name: eks-devops-nodeport-service
+                port: 
+                  number: 80                                 
+# Important Note-1: In path based routing order is very important, if we are going to use  "/*", try to use it at the end of all rules.         
+#important
